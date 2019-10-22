@@ -254,7 +254,6 @@ type
     fLogQueue : TLogQueue;
     fLogLevel : TLogLevel;
     fFormatSettings : TFormatSettings;
-    fEnabled : Boolean;
     fTimePrecission : Boolean;
     fFails : Integer;
     fRestartTimes : Integer;
@@ -288,6 +287,7 @@ type
     procedure SetMaxFailsToRestart(const Value: Integer);
   protected
     fJsonOutputOptions : TJsonOutputOptions;
+    fEnabled : Boolean; // EZ moved to protected
     function LogItemToLine(cLogItem : TLogItem; aShowTimeStamp, aShowEventTypes : Boolean) : string; overload;
     function LogItemToJsonObject(cLogItem: TLogItem): TJSONObject; overload;
     function LogItemToJson(cLogItem : TLogItem) : string; overload;
@@ -383,7 +383,6 @@ type
     function GetQueuedLogItems : Integer;
     procedure EnQueueItem(cEventDate : TSystemTime; const cMsg : string; cEventType : TEventType); overload;
     procedure EnQueueItem(cEventDate : TSystemTime; const cMsg : string; const cException, cStackTrace : string; cEventType : TEventType); overload;
-    procedure EnQueueItem(cLogItem : TLogItem); overload;
     procedure OnGetHandledException(E : Exception);
     procedure OnGetRuntimeError(const ErrorName : string; ErrorCode : Byte; ErrorPtr : Pointer);
     procedure OnGetUnhandledException(ExceptObject: TObject; ExceptAddr: Pointer);
@@ -392,18 +391,25 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
     property Providers : TLogProviderList read fProviders write fProviders;
     property RedirectOwnErrorsToProvider : TLogProviderBase read fOwnErrorsProvider write SetOwnErrorsProvider;
     property WaitForFlushBeforeExit : Integer read fWaitForFlushBeforeExit write fWaitForFlushBeforeExit;
     property OnProviderError : TProviderErrorEvent read fOnProviderError write fOnProviderError;
     property QueueCount : Integer read GetQueuedLogItems;
     property OnQueueError : TQueueErrorEvent read fOnQueueError write fOnQueueError;
+
     function ProvidersQueueCount : Integer;
     function IsQueueEmpty : Boolean;
+
     class function GetVersion : string;
+
+    procedure EnQueueItem(cLogItem : TLogItem); overload; // EZ - moved to public
+
     procedure Add(const cMsg : string; cEventType : TEventType); overload;
     procedure Add(const cMsg, cException, cStackTrace : string; cEventType : TEventType); overload;
     procedure Add(const cMsg : string; cValues : array of {$IFDEF FPC}const{$ELSE}TVarRec{$ENDIF}; cEventType : TEventType); overload;
+
     //simplify logging add
     procedure Info(const cMsg : string); overload;
     procedure Info(const cMsg : string; cValues : array of const); overload;
